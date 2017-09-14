@@ -1,0 +1,42 @@
+{
+    "name": "futuretek/yii2-options",
+    "description": "Database configuration storage support",
+    "keywords": [
+        "extension",
+        "options",
+        "model",
+        "yii"
+    ],
+    "type": "yii2-extension",
+    "license": "Apache-2.0",
+    "homepage": "http://www.futuretek.cz/",
+    "authors": [
+        {
+            "name": "Lukas Cerny",
+            "email": "lukas.cerny@futuretek.cz",
+            "homepage": "http://www.futuretek.cz",
+            "role": "Developer"
+        },
+        {
+            "name": "Petr Compel",
+            "email": "petr.compel@futuretek.cz",
+            "homepage": "http://www.futuretek.cz",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/lukascernydis/ext-yii2-options/issues",
+        "wiki": "https://github.com/lukascernydis/ext-yii2-options/wiki",
+        "source": "https://github.com/lukascernydis/ext-yii2-options"
+    },
+    "require": {
+        "php": ">=5.4.0",
+        "yiisoft/yii2": "^2.0.0",
+        "futuretek/yii2-migrations": "^1.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "futuretek\\options\\": ""
+        }
+    }
+}
