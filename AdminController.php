@@ -1,13 +1,12 @@
 <?php
 namespace futuretek\options;
 
-use futuretek\grid\GridView;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\data\ActiveDataProvider;
 use yii\db\IntegrityException;
 use yii\filters\VerbFilter;
-use yii\helpers\ArrayHelper;
+use yii\grid\GridView;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 
@@ -81,67 +80,12 @@ class AdminController extends Controller
                     'attribute' => 'value',
                     'format' => 'raw',
                     'value' => function ($model) {
-                        return $this->formatValue($model);
+                        return OptionHelper::formatValue($model);
                     },
                 ],
             ],
             'export' => false,
         ])]);
-    }
-
-    /**
-     * @param Option $model Option model
-     * @return string
-     */
-    protected function formatValue($model)
-    {
-        switch ($model->type) {
-            case Option::TYPE_BOOL:
-                $output = self::gridValueYesNo($model->value);
-                break;
-            case Option::TYPE_DATETIME:
-                $output = Yii::$app->formatter->asDatetime($model->value);
-                break;
-            case Option::TYPE_OPTION:
-                $values = ArrayHelper::map($model->getData(), 'id', 'name');
-                $output = $values[$model->value];
-                break;
-            case Option::TYPE_PASSWORD:
-                $output = '********';
-                break;
-            case Option::TYPE_TIME:
-                $output = Yii::$app->formatter->asTime($model->value);
-                break;
-            default:
-                $output = $model->value;
-        }
-
-        if ($model->unit !== null) {
-            $output .= ' ' . $model->unit;
-        }
-
-        return $output;
-    }
-
-    /**
-     * Generate formatted value for Yes/No/null options
-     *
-     * @param int $value Attribute value
-     * @param bool $icon Show icon instead of text
-     * @return string Generated html code
-     */
-    public static function gridValueYesNo($value, $icon = true)
-    {
-        switch ($value) {
-            case 0:
-                return $icon ? '<i class="fa fa-times text-danger" title="' . Yii::t('fts-yii2-options', 'No') . '"></i>' : Yii::t('fts-yii2-options', 'No');
-                break;
-            case 1:
-                return $icon ? '<i class="fa fa-check text-success" title="' . Yii::t('fts-yii2-options', 'Yes') . '"></i>' : Yii::t('fts-yii2-options', 'Yes');
-                break;
-            default:
-                return $icon ? '<i class="fa fa-question text-info" title="' . Yii::t('fts-yii2-options', 'Unknown') . '"></i>' : Yii::t('fts-yii2-options', 'Unknown');
-        }
     }
 
     /**

@@ -379,19 +379,12 @@ class Option extends ActiveRecord
      *
      * @return bool|string Option value or boolean false when option not found
      *
+     * @deprecated
      * @throws Exception
      * @static
      */
     public static function getUser($name, $userId = null, $defaultValue = null)
     {
-        if ($userId === null) {
-            if (Yii::$app->user->isGuest) {
-                throw new Exception(Yii::t('fts-yii2-options', 'Cannot determine user ID'));
-            } else {
-                $userId = (int)Yii::$app->user->id;
-            }
-        }
-
         return self::get($name, 'User', $userId, $defaultValue);
     }
 
@@ -404,19 +397,12 @@ class Option extends ActiveRecord
      *
      * @return bool If option was set successfully
      *
+     * @deprecated
      * @throws Exception
      * @static
      */
     public static function setUser($name, $value, $userId = null)
     {
-        if ($userId === null) {
-            if (Yii::$app->user->isGuest) {
-                throw new Exception(Yii::t('fts-yii2-options', 'Cannot determine user ID'));
-            } else {
-                $userId = (int)Yii::$app->user->id;
-            }
-        }
-
         return self::set($name, $value, 'User', $userId);
     }
 
