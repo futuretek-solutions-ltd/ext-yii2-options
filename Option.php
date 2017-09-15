@@ -81,8 +81,6 @@ class Option extends ActiveRecord
      */
     const TYPE_PASSWORD = 'W';
 
-    const NOT_SET = 'NOT_SET';
-
     /**
      * @inheritdoc
      */
@@ -157,7 +155,7 @@ class Option extends ActiveRecord
      *
      * @static
      */
-    public static function get($name, $context = 'Option', $context_id = null, $defaultValue = self::NOT_SET)
+    public static function get($name, $context = 'Option', $context_id = null, $defaultValue = null)
     {
         $condition = ['name' => $name, 'context' => $context];
         if ($context_id) {
@@ -177,7 +175,7 @@ class Option extends ActiveRecord
             $value = $defaultValue;
         }
 
-        if ($value === false && $defaultValue !== 'NOT_SET') {
+        if ($value === false && $defaultValue !== null) {
             return $defaultValue;
         } else {
             return $value;
