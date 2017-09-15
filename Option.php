@@ -135,10 +135,10 @@ class Option extends ActiveRecord
     public function beforeSave($insert)
     {
         if ($insert && $this->hasAttribute('created_at')) {
-            $this->created_at = new Expression('NOW()');
+            $this->created_at = (new \DateTime())->format('Y-m-d H:i:s');
         }
         if ($this->hasAttribute('updated_at')) {
-            $this->updated_at = new Expression('NOW()');
+            $this->updated_at = (new \DateTime())->format('Y-m-d H:i:s');
         }
 
         return parent::beforeSave($insert);
