@@ -20,10 +20,11 @@ class IndexAction extends Action
      * @inheritdoc
      * @throws \yii\base\InvalidParamException
      * @throws \Exception
+     * @throws \yii\base\InvalidConfigException
      */
     public function run () {
         $dataProvider = new ActiveDataProvider([
-            'query' => Option::find(),
+            'query' => Option::find()->where(['system' => 0]),
             'pagination' => [
                 'pageSize' => 9999,
             ],
@@ -37,11 +38,11 @@ class IndexAction extends Action
 
         return $this->controller->render('@vendor/futuretek/yii2-options/views/index', ['grid' => GridView::widget([
             'dataProvider' => $dataProvider,
-            'responsive' => false,
-            'striped' => false,
-            'toolbar' => [],
+            //'responsive' => false,
+            //'striped' => false,
+            //'toolbar' => [],
             'layout' => '<div class="box-body table-responsive">{items}</div>',
-            'pjax' => true,
+            //'pjax' => true,
             'columns' => [
                 [
                     'attribute' => 'title',
@@ -54,7 +55,7 @@ class IndexAction extends Action
                     },
                 ],
             ],
-            'export' => false,
+            //'export' => false,
         ])]);
     }
 }
