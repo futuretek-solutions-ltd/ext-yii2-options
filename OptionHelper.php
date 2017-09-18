@@ -1,21 +1,19 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: bocekma
- * Date: 15.9.2017
- * Time: 10:25
- */
 
 namespace futuretek\options;
 
-
 use Yii;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /**
  * Class OptionHelper
+ *
  * @package futuretek\options
+ * @author  Martin Bocek
+ * @license Apache-2.0
+ * @link    http://www.futuretek.cz
  */
 class OptionHelper
 {
@@ -43,6 +41,8 @@ class OptionHelper
     /**
      * @param Option $model Option model
      * @return string
+     * @throws \yii\base\InvalidParamException
+     * @throws \yii\base\InvalidConfigException
      */
     public static function formatValue($model)
     {
@@ -74,57 +74,118 @@ class OptionHelper
         return $output;
     }
 
+    /**
+     * Render edit field
+     *
+     * @param ActiveForm $form
+     * @param Option $option
+     */
     public static function renderEditField(ActiveForm $form, Option $option)
     {
-        if ($option->type === 'B') { ?>
-            <?php /* Boolean */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value')->label($option->title)->checkbox()->hint($option->description) ?>
-        <?php } else if ($option->type === 'D') { ?>
-            <?php /* Date */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-calendar"></i></span>{input}</div>',
-            ])->label($option->title)->input('date')->hint($option->description) ?>
-        <?php } else if ($option->type === 'E') { ?>
-            <?php /* Email */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-envelope"></i></span>{input}</div>',
-            ])->label($option->title)->input('email')->hint($option->description) ?>
-        <?php } else if ($option->type === 'F') { ?>
-            <?php /* Float */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value')->label($option->title)->input('number')->hint($option->description) ?>
-        <?php } else if ($option->type === 'I') { ?>
-            <?php /* Int */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value')->label($option->title)->input('number')->hint($option->description) ?>
-        <?php } else if ($option->type === 'O') { ?>
-            <?php /* Option */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value')->label($option->title)->dropDownList(ArrayHelper::map($option->getData(), 'id', 'name'))->hint($option->description) ?>
-        <?php } else if ($option->type === 'P') { ?>
-            <?php /* Phone */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-phone"></i></span>{input}</div>',
-            ])->label($option->title)->input('tel')->hint($option->description) ?>
-        <?php } else if ($option->type === 'S') { ?>
-            <?php /* String */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value')->label($option->title)->input('text')->hint($option->description) ?>
-        <?php } else if ($option->type === 'X') { ?>
-            <?php /* Long text */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value')->label($option->title)->textarea(['rows' => 6])->hint($option->description) ?>
-        <?php } else if ($option->type === 'T') { ?>
-            <?php /* Time */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-clock-o"></i></span>{input}</div>',
-            ])->label($option->title)->input('time')->hint($option->description) ?>
-        <?php } else if ($option->type === 'U') { ?>
-            <?php /* URL */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value')->label($option->title)->input('url')->hint($option->description) ?>
-        <?php } else if ($option->type === 'W') { ?>
-            <?php /* Password */ ?>
-            <?= $form->field($option, '[' . $option->id . ']value', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-key"></i></span>{input}</div>',
-            ])->label($option->title)->input('password')->hint($option->description) ?>
-        <?php } else { ?>
-            <p class="label label-danger"><?= Yii::t('fts-yii2-options', 'Option type {type} not found', ['type' => $option->type]) ?></p>
-        <?php }
-
+        switch ($option->type) {
+            case Option::TYPE_BOOL:
+                echo $form->
+                field($option, '[' . $option->id . ']value')
+                    ->label($option->title)
+                    ->checkbox()
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_DATETIME:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value', [
+                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-calendar"></i></span>{input}</div>',
+                    ])->label($option->title)
+                    ->input('date')
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_EMAIL:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value', [
+                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-envelope"></i></span>{input}</div>',
+                    ])->label($option->title)
+                    ->input('email')
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_FLOAT:
+            case Option::TYPE_INT:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value')
+                    ->label($option->title)
+                    ->input('number')
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_OPTION:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value')
+                    ->label($option->title)
+                    ->dropDownList(ArrayHelper::map($option->getData(), 'id', 'name'))
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_PHONE:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value', [
+                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-phone"></i></span>{input}</div>',
+                    ])
+                    ->label($option->title)
+                    ->input('tel')
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_STRING:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value')
+                    ->label($option->title)
+                    ->input('text')
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_TEXT:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value')
+                    ->label($option->title)
+                    ->textarea(['rows' => 6])
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_HTML:
+                if (Yii::$app->hasModule('redactor')) {
+                    echo $form
+                        ->field($option, '[' . $option->id . ']value')
+                        ->label($option->title)
+                        ->hint($option->description)
+                        ->widget(\yii\redactor\widgets\Redactor::className());
+                } else {
+                    echo $form
+                        ->field($option, '[' . $option->id . ']value')
+                        ->label($option->title)
+                        ->textarea(['rows' => 6])
+                        ->hint($option->description);
+                }
+                break;
+            case Option::TYPE_TIME:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value', [
+                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-clock-o"></i></span>{input}</div>',
+                    ])
+                    ->label($option->title)
+                    ->input('time')
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_URL:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value')
+                    ->label($option->title)
+                    ->input('url')
+                    ->hint($option->description);
+                break;
+            case Option::TYPE_PASSWORD:
+                echo $form
+                    ->field($option, '[' . $option->id . ']value', [
+                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-key"></i></span>{input}</div>',
+                    ])
+                    ->label($option->title)
+                    ->input('password')
+                    ->hint($option->description);
+                break;
+            default:
+                echo Html::tag('p', Yii::t('fts-yii2-options', 'Option type {type} not found', ['type' => $option->type]), ['class' => 'label label-danger']);
+        }
     }
 }

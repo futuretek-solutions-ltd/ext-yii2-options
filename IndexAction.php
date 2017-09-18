@@ -1,20 +1,26 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: bocekma
- * Date: 15.9.2017
- * Time: 10:41
- */
 
 namespace futuretek\options;
-
 
 use yii\base\Action;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 
+/**
+ * Class IndexAction
+ *
+ * @package futuretek\options
+ * @author  Martin Bocek
+ * @license Apache-2.0
+ * @link    http://www.futuretek.cz
+ */
 class IndexAction extends Action
 {
+    /**
+     * @inheritdoc
+     * @throws \yii\base\InvalidParamException
+     * @throws \Exception
+     */
     public function run () {
         $dataProvider = new ActiveDataProvider([
             'query' => Option::find(),

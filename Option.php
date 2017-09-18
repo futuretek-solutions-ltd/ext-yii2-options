@@ -69,6 +69,10 @@ class Option extends ActiveRecord
      */
     const TYPE_TEXT = 'X';
     /**
+     * Text type (long string)
+     */
+    const TYPE_HTML = 'H';
+    /**
      * Time type
      */
     const TYPE_TIME = 'T';
@@ -166,7 +170,7 @@ class Option extends ActiveRecord
         $option = self::find()->where($condition)->one();
 
         if ($option !== null) {
-            if ($option->type === Option::TYPE_PASSWORD) {
+            if ($option->type === self::TYPE_PASSWORD) {
                 $value = Yii::$app->getSecurity()->decryptByPassword(base64_decode($option->value), Yii::$app->params['salt']);
             } else {
                 $value = $option->value;
@@ -177,9 +181,9 @@ class Option extends ActiveRecord
 
         if ($value === false && $defaultValue !== null) {
             return $defaultValue;
-        } else {
-            return $value;
         }
+
+        return $value;
     }
 
     /**
@@ -198,7 +202,7 @@ class Option extends ActiveRecord
             return null;
         }
 
-        if ($option->type === Option::TYPE_PASSWORD) {
+        if ($option->type === self::TYPE_PASSWORD) {
             $value = Yii::$app->getSecurity()->decryptByPassword(base64_decode($option->value), Yii::$app->params['salt']);
         } else {
             $value = $option->value;
@@ -222,7 +226,7 @@ class Option extends ActiveRecord
         $options = self::find()->where(['context' => $context, 'context_id' => $context_id])->asArray()->all();
 
         foreach ($options as &$option) {
-            if ($option['type'] === Option::TYPE_PASSWORD) {
+            if ($option['type'] === self::TYPE_PASSWORD) {
                 $option['value'] = Yii::$app->getSecurity()->decryptByPassword(base64_decode($option['value']), Yii::$app->params['salt']);
             }
         }
@@ -250,7 +254,7 @@ class Option extends ActiveRecord
         $option = self::findOne(['name' => $name, 'context' => $context, 'context_id' => $context_id]);
 
         if ($option === null) {
-            $option = new Option();
+            $option = new self();
             $option->name = $name;
             $option->type = $type;
             $option->system = (int)$system;
@@ -260,7 +264,7 @@ class Option extends ActiveRecord
             $type = $option->type;
         }
 
-        if ($type === Option::TYPE_PASSWORD) {
+        if ($type === self::TYPE_PASSWORD) {
             $value = base64_encode(Yii::$app->getSecurity()->encryptByPassword($value, Yii::$app->params['salt']));
         }
 
@@ -291,7 +295,7 @@ class Option extends ActiveRecord
         $option = self::findOne(['name' => $name, 'context' => $context, 'context_id' => $context_id]);
 
         if ($option === null) {
-            $option = new Option();
+            $option = new self();
             $option->name = strtoupper($name);
             $option->context = $context;
             $option->context_id = $context_id === null ? null : (int)$context_id;
@@ -419,5 +423,4 @@ class Option extends ActiveRecord
     {
         $this->data = serialize($data);
     }
-
 }

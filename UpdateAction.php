@@ -1,25 +1,24 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: bocekma
- * Date: 15.9.2017
- * Time: 10:35
- */
 
 namespace futuretek\options;
-
 
 use Yii;
 use yii\base\Action;
 
 /**
- * Class ActionUpdate
+ * Class UpdateAction
+ *
  * @package futuretek\options
+ * @author  Martin Bocek
+ * @license Apache-2.0
+ * @link    http://www.futuretek.cz
  */
 class UpdateAction extends Action
 {
     /**
-     * @return string|\yii\web\Response
+     * @inheritdoc
+     * @throws \yii\base\InvalidParamException
+     * @throws \yii\base\InvalidConfigException
      */
     public function run () {
         /** @var Option[] $options */

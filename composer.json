@@ -34,6 +34,9 @@
         "yiisoft/yii2": "^2.0.0",
         "futuretek/yii2-migrations": "^1.0.0"
     },
+    "suggest": {
+        "yiidoc/yii2-redactor": "^2.0.0"
+    },
     "autoload": {
         "psr-4": {
             "futuretek\\options\\": ""
