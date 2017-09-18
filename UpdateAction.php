@@ -41,6 +41,6 @@ class UpdateAction extends Action
             return $this->controller->redirect('index');
         }
 
-        return $this->controller->render('@vendor/futuretek/yii2-options/views/update', ['xoptions' => $options]);
+        return $this->controller->render('@vendor/futuretek/yii2-options/views/update', ['options' => $options]);
     }
 }

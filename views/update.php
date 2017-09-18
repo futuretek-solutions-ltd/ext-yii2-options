@@ -1,40 +1,37 @@
 <?php
 /**
  * @var yii\web\View $this
- * @var \futuretek\options\Option[] $xoptions
+ * @var \futuretek\options\Option[] $options
  */
-use futuretek\switchinput\SwitchInput;
+
 use yii\helpers\Html;
+use yii\bootstrap\ActiveForm;
 
 $this->title = Yii::t('fts-yii2-options', 'Update options');
 ?>
-<div class="row">
-    <div class="option-form col-xs-12">
-        <?php
-        $form = yii\bootstrap\ActiveForm::begin([
-            'layout' => 'horizontal',
-            'fieldConfig' => [
-                'template' => '{label}{beginWrapper}{input}{hint}{error}{endWrapper}',
-                'horizontalCssClasses' => [
-                    'label' => 'col-sm-3',
-                    'offset' => 'col-sm-offset-2',
-                    'wrapper' => 'col-sm-10 col-md-6',
-                    'error' => '',
-                    'hint' => ''
-                ]
-            ],
-            'options' => ['class' => 'box']
-        ]);
-        ?>
-        <div class="box-body">
-            <?php foreach ($xoptions as $index => $opt) {
-                \futuretek\options\OptionHelper::renderEditField($form, $opt);
-             } ?>
-        </div>
 
-        <div class="box-footer text-right">
-            <?= Html::submitButton(Yii::t('fts-yii2-options', 'Save'), ['class' => 'btn btn-primary']) ?>
-        </div>
-        <?php yii\bootstrap\ActiveForm::end(); ?>
+<div class="row">
+    <div class="col pb-4">
+        <h1><?= $this->title ?></h1>
     </div>
 </div>
+
+<?php $form = ActiveForm::begin([
+    'options' => ['class' => 'box'],
+]); ?>
+<div class="row">
+    <div class="col">
+        <?php foreach ($options as $index => $opt) {
+            \futuretek\options\OptionHelper::renderEditField($form, $opt);
+        } ?>
+    </div>
+</div>
+<div class="row">
+    <div class="col pt-4 pb-2">
+        <?= Html::a(Yii::t('fts-yii2-options', 'Cancel'),['index'], ['class' => 'btn btn-danger']) ?>
+    </div>
+    <div class="col pt-4 pb-2">
+        <?= Html::submitButton(Yii::t('fts-yii2-options', 'Save'), ['class' => 'btn btn-primary pull-right']) ?>
+    </div>
+</div>
+<?php ActiveForm::end(); ?>

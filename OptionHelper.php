@@ -41,6 +41,7 @@ class OptionHelper
     /**
      * @param Option $model Option model
      * @return string
+     * @throws \RuntimeException
      * @throws \yii\base\InvalidParamException
      * @throws \yii\base\InvalidConfigException
      */
@@ -79,6 +80,8 @@ class OptionHelper
      *
      * @param ActiveForm $form
      * @param Option $option
+     * @throws \RuntimeException
+     * @throws \yii\base\InvalidParamException
      */
     public static function renderEditField(ActiveForm $form, Option $option)
     {

@@ -37,4 +37,7 @@ return [
     'Yes' => 'Ano',
     'Unknown' => 'Neznámý',
     'Before use you must install migrations.' => 'Před použitím musíte nainstalovat migrace.',
+    'Data is not callable' => 'Data nejsou volatelná',
+    'Invalid data type {type}.' => 'Typ dat {type} není platný.',
+    'Cancel' => 'Zrušit',
 ];

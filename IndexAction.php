@@ -22,7 +22,8 @@ class IndexAction extends Action
      * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
-    public function run () {
+    public function run()
+    {
         $dataProvider = new ActiveDataProvider([
             'query' => Option::find()->where(['system' => 0]),
             'pagination' => [
@@ -36,26 +37,6 @@ class IndexAction extends Action
 
         ]);
 
-        return $this->controller->render('@vendor/futuretek/yii2-options/views/index', ['grid' => GridView::widget([
-            'dataProvider' => $dataProvider,
-            //'responsive' => false,
-            //'striped' => false,
-            //'toolbar' => [],
-            'layout' => '<div class="box-body table-responsive">{items}</div>',
-            //'pjax' => true,
-            'columns' => [
-                [
-                    'attribute' => 'title',
-                ],
-                [
-                    'attribute' => 'value',
-                    'format' => 'raw',
-                    'value' => function ($model) {
-                        return OptionHelper::formatValue($model);
-                    },
-                ],
-            ],
-            //'export' => false,
-        ])]);
+        return $this->controller->render('@vendor/futuretek/yii2-options/views/index', ['dataProvider' => $dataProvider]);
     }
 }

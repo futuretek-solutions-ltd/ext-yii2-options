@@ -23,7 +23,7 @@ class m150103_162805_init extends Migration
             'data' => $this->text(),
             'default_value' => $this->text(),
             'unit' => $this->string(20),
-            'system' => $this->boolean()->notNull()->defaultValue(false),
+            'system' => $this->integer(1)->notNull()->defaultValue(0),
             'type' => $this->string(1)->notNull()->defaultValue('S'),
             'context' => $this->string(16)->notNull()->defaultValue('Option'),
             'context_id' => $this->integer(11),

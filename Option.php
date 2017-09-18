@@ -15,7 +15,6 @@ use yii\db\Expression;
  * @property string $value Option value
  * @property string $title Option title
  * @property string $description
- * @property string $data
  * @property string $default_value
  * @property string $unit
  * @property bool $system
@@ -409,17 +408,29 @@ class Option extends ActiveRecord
     }
 
     /**
-     * @return string
+     * Get option data
+     *
+     * @return array
+     * @throws \yii\base\InvalidParamException
+     * @throws \RuntimeException
      */
     public function getData()
     {
-        return unserialize($this->data);
+        $data = unserialize($this->data);
+
+        if ($data instanceof OptionData) {
+            return $data->getData();
+        }
+
+        return $data;
     }
 
     /**
-     * @param string $data
+     * Set option data
+     *
+     * @param OptionData $data Data definition
      */
-    public function setData($data)
+    public function setData(OptionData $data)
     {
         $this->data = serialize($data);
     }

@@ -32,6 +32,7 @@
     "require": {
         "php": ">=5.4.0",
         "yiisoft/yii2": "^2.0.0",
+        "yiisoft/yii2-bootstrap": "^2.0.0",
         "futuretek/yii2-migrations": "^1.0.0"
     },
     "suggest": {
