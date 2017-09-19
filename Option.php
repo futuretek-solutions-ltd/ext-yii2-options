@@ -17,7 +17,7 @@ use yii\db\Expression;
  * @property string $description
  * @property string $default_value
  * @property string $unit
- * @property bool $system
+ * @property integer $system
  * @property string $type
  * @property string $context
  * @property int $context_id
