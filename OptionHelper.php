@@ -56,7 +56,11 @@ class OptionHelper
                 break;
             case Option::TYPE_OPTION:
                 $values = ArrayHelper::map($model->getData(), 'id', 'name');
-                $output = $values[$model->value];
+                if (array_key_exists($model->value, $values)) {
+                    $output = $values[$model->value];
+                } else {
+                    $output = reset($values);
+                }
                 break;
             case Option::TYPE_PASSWORD:
                 $output = '********';
