@@ -101,7 +101,7 @@ class Option extends ActiveRecord
             [['name'], 'required'],
             [['description', 'data', 'context', 'unit'], 'string'],
             [['system', 'context_id'], 'integer'],
-            [['value', 'created_at', 'updated_at'], 'safe'],
+            [['value', 'created_at', 'updated_at', 'default_value'], 'safe'],
             [['name', 'title'], 'string', 'max' => 128],
             [['type'], 'string', 'max' => 1],
             [['context'], 'string', 'max' => 16],
