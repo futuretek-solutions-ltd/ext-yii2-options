@@ -5,7 +5,7 @@ namespace futuretek\options;
 use Yii;
 use yii\base\Exception;
 use yii\db\ActiveRecord;
-use yii\db\Expression;
+use yii\helpers\ArrayHelper;
 
 /**
  * Model Option
@@ -20,6 +20,7 @@ use yii\db\Expression;
  * @property integer $system
  * @property string $type
  * @property string $context
+ * @property string $data
  * @property int $context_id
  * @property string $created_at
  * @property string $updated_at
@@ -154,60 +155,35 @@ class Option extends ActiveRecord
      * @param string $context Option context
      * @param int|null $context_id Context ID
      * @param mixed|null $defaultValue Default value
-     * @return null|string Option value or "NOT_SET" when option not found
+     * @return null|string Option value or defaultValue when option not found
      *
      * @static
      */
     public static function get($name, $context = 'Option', $context_id = null, $defaultValue = null)
     {
-        $condition = ['name' => $name, 'context' => $context];
-        if ($context_id) {
-            $condition['context_id'] = $context_id;
-        }
-
-        /** @var Option $option */
-        $option = self::find()->where($condition)->one();
-
-        if ($option !== null) {
-            if ($option->type === self::TYPE_PASSWORD) {
-                $value = Yii::$app->getSecurity()->decryptByPassword(base64_decode($option->value), Yii::$app->params['salt']);
-            } else {
-                $value = $option->value;
-            }
-        } else {
-            $value = $defaultValue;
-        }
-
-        if ($value === false && $defaultValue !== null) {
+        $options = self::_loadCache($context, $context_id);
+        if (!array_key_exists($name, $options)) {
             return $defaultValue;
         }
+        if ($options[$name]['type'] === self::TYPE_PASSWORD) {
+            return Yii::$app->getSecurity()->decryptByPassword(base64_decode($options[$name]['value']), Yii::$app->params['salt']);
+        }
 
-        return $value;
+        return $options[$name]['value'];
     }
 
     /**
-     * Get option value fromOption context
+     * Get option value from Option context
      *
      * @param string $name Option name
      * @return null|string Option value or boolean false when option not found
      *
      * @static
+     * @deprecated Please use Option::get() instead.
      */
     public static function getOpt($name)
     {
-        /** @var Option $option */
-        $option = self::find()->where(['name' => $name, 'context' => 'Option', 'context_id' => null])->one();
-        if ($option === null) {
-            return null;
-        }
-
-        if ($option->type === self::TYPE_PASSWORD) {
-            $value = Yii::$app->getSecurity()->decryptByPassword(base64_decode($option->value), Yii::$app->params['salt']);
-        } else {
-            $value = $option->value;
-        }
-
-        return $value;
+        return self::get($name);
     }
 
     /**
@@ -222,7 +198,7 @@ class Option extends ActiveRecord
      */
     public static function getAll($context = 'Option', $context_id = null)
     {
-        $options = self::find()->where(['context' => $context, 'context_id' => $context_id])->asArray()->all();
+        $options = self::_loadCache($context, $context_id);
 
         foreach ($options as &$option) {
             if ($option['type'] === self::TYPE_PASSWORD) {
@@ -230,7 +206,7 @@ class Option extends ActiveRecord
             }
         }
 
-        return array_column($options, 'value', 'name');
+        return ArrayHelper::map($options, 'name', 'value');
     }
 
     /**
@@ -268,6 +244,8 @@ class Option extends ActiveRecord
         }
 
         $option->value = $value;
+
+        self::_invalidateCache($context, $context_id);
 
         return $option->save();
     }
@@ -308,6 +286,8 @@ class Option extends ActiveRecord
         $option->setData($data);
         $option->data = '';
 
+        self::_invalidateCache($context, $context_id);
+
         return $option->save();
     }
 
@@ -330,6 +310,8 @@ class Option extends ActiveRecord
         }
 
         $option->value = $option->default_value;
+
+        self::_invalidateCache($context, $context_id);
 
         return $option->save();
     }
@@ -354,6 +336,8 @@ class Option extends ActiveRecord
             $condition['context_id'] = $context_id;
         }
 
+        self::_invalidateCache($context, $context_id);
+
         return (bool)self::deleteAll($condition);
     }
 
@@ -368,6 +352,8 @@ class Option extends ActiveRecord
      */
     public static function delAll($context, $context_id)
     {
+        self::_invalidateCache($context, $context_id);
+
         return (bool)self::deleteAll(['context' => $context, 'context_id' => $context_id]);
     }
 
@@ -404,6 +390,8 @@ class Option extends ActiveRecord
      */
     public static function setUser($name, $value, $userId = null)
     {
+        self::_invalidateCache('User', $userId);
+
         return self::set($name, $value, 'User', $userId);
     }
 
@@ -433,5 +421,44 @@ class Option extends ActiveRecord
     public function setData(OptionData $data)
     {
         $this->data = serialize($data);
+    }
+
+    /**
+     * Loads all options from specified context (using cache)
+     *
+     * @param string $context Context
+     * @param int $context_id Context ID
+     * @return array[]
+     */
+    private static function _loadCache($context, $context_id)
+    {
+        $key = [__NAMESPACE__, __CLASS__, 'opt', $context, $context_id];
+        $cache = Yii::$app->getCache()->get($key);
+        if ($cache !== false) {
+            return $cache['data'];
+        }
+
+        $result = self::find()
+            ->select(['name', 'value', 'type'])
+            ->where(['context' => $context, 'context_id' => $context_id])
+            ->asArray()
+            ->all();
+
+        $result = ArrayHelper::index($result, 'name');
+
+        Yii::$app->getCache()->set($key, ['data' => $result]);
+
+        return $result;
+    }
+
+    /**
+     * Invalidates cache for specified context
+     *
+     * @param string $context Context
+     * @param int $context_id Context ID
+     */
+    private static function _invalidateCache($context, $context_id)
+    {
+        Yii::$app->getCache()->delete([__NAMESPACE__, __CLASS__, 'opt', $context, $context_id]);
     }
 }
