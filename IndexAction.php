@@ -31,6 +31,7 @@ class IndexAction extends Action
             ],
             'sort' => [
                 'defaultOrder' => [
+                    'category' => SORT_ASC,
                     'name' => SORT_ASC,
                 ],
             ],

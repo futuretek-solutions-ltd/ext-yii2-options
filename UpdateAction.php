@@ -22,7 +22,11 @@ class UpdateAction extends Action
      */
     public function run () {
         /** @var Option[] $options */
-        $options = Option::find()->indexBy('id')->where(['system' => 0, 'context' => 'Option'])->all();
+        $options = Option::find()
+            ->indexBy('id')
+            ->where(['system' => 0, 'context' => 'Option'])
+            ->orderBy(['category' => SORT_ASC])
+            ->all();
         foreach ($options as $option) {
             $option->system = (int)$option->system;
             if ($option->type === Option::TYPE_PASSWORD) {

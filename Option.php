@@ -21,6 +21,7 @@ use yii\helpers\ArrayHelper;
  * @property string $type
  * @property string $context
  * @property string $data
+ * @property string $category
  * @property int $context_id
  * @property string $created_at
  * @property string $updated_at
@@ -104,6 +105,7 @@ class Option extends ActiveRecord
             [['system', 'context_id'], 'integer'],
             [['value', 'created_at', 'updated_at', 'default_value'], 'safe'],
             [['name', 'title'], 'string', 'max' => 128],
+            [['category'], 'string', 'max' => 64],
             [['type'], 'string', 'max' => 1],
             [['context'], 'string', 'max' => 16],
             [['unit'], 'string', 'max' => 16],
@@ -126,6 +128,7 @@ class Option extends ActiveRecord
             'data' => Yii::t('fts-yii2-options', 'Data'),
             'system' => Yii::t('fts-yii2-options', 'System'),
             'type' => Yii::t('fts-yii2-options', 'Type'),
+            'category' => Yii::t('fts-yii2-options', 'Category'),
             'context' => Yii::t('fts-yii2-options', 'Context'),
             'context_id' => Yii::t('fts-yii2-options', 'Context'),
             'created_at' => Yii::t('fts-yii2-options', 'Created At'),
