@@ -3,14 +3,14 @@
 use yii\db\Migration;
 
 /**
- * Class m171017_135314_category
+ * Class m150103_162806_category
  *
  * @package ext-options
  * @author  Lukas Cerny <lukas.cerny@futuretek.cz>
  * @license Apache-2.0
  * @link    http://www.futuretek.cz
  */
-class m171017_135314_category extends Migration
+class m150103_162806_category extends Migration
 {
     public function safeUp()
     {
