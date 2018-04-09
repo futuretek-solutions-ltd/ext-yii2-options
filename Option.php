@@ -254,6 +254,21 @@ class Option extends ActiveRecord
     }
 
     /**
+     * Check if option with specified name exists
+     *
+     * @param string $name Option name
+     * @param string $context Option context
+     * @param int|null $context_id Context ID
+     * @return bool
+     */
+    public static function has($name, $context = 'Options', $context_id = null)
+    {
+        $options = self::_loadCache($context, $context_id);
+
+        return array_key_exists($name, $options);
+    }
+
+    /**
      * Set option value / create option
      *
      * @param string $name Option name
