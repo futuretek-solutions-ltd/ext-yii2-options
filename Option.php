@@ -261,7 +261,7 @@ class Option extends ActiveRecord
      * @param int|null $context_id Context ID
      * @return bool
      */
-    public static function has($name, $context = 'Options', $context_id = null)
+    public static function has($name, $context = 'Option', $context_id = null)
     {
         $options = self::_loadCache($context, $context_id);
 
