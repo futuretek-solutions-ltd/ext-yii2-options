@@ -1,10 +1,10 @@
 {
     "name": "futuretek/yii2-options",
-    "description": "Database configuration storage support",
+    "description": "This extension provide application configuration support stored in database.",
     "keywords": [
         "extension",
         "options",
-        "model",
+        "component",
         "yii"
     ],
     "type": "yii2-extension",
@@ -16,24 +16,19 @@
             "email": "lukas.cerny@futuretek.cz",
             "homepage": "http://www.futuretek.cz",
             "role": "Developer"
-        },
-        {
-            "name": "Petr Compel",
-            "email": "petr.compel@futuretek.cz",
-            "homepage": "http://www.futuretek.cz",
-            "role": "Developer"
         }
     ],
     "support": {
-        "issues": "https://github.com/lukascernydis/ext-yii2-options/issues",
-        "wiki": "https://github.com/lukascernydis/ext-yii2-options/wiki",
-        "source": "https://github.com/lukascernydis/ext-yii2-options"
+        "issues": "https://github.com/futuretek-solutions-ltd/ext-yii2-options/issues",
+        "wiki": "https://github.com/futuretek-solutions-ltd/ext-yii2-options/wiki",
+        "source": "https://github.com/futuretek-solutions-ltd/ext-yii2-options"
     },
     "require": {
-        "php": ">=5.4.0",
+        "php": ">=5.5.0",
         "yiisoft/yii2": "^2.0.0",
         "yiisoft/yii2-bootstrap": "^2.0.0",
-        "futuretek/yii2-migrations": "^1.0.0"
+        "futuretek/yii2-migrations": "^1.0.0",
+        "rmrevin/yii2-fontawesome": "^3.0.0"
     },
     "suggest": {
         "yiidoc/yii2-redactor": "^2.0.0"

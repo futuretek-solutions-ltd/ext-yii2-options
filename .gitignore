@@ -14,7 +14,6 @@ $RECYCLE.BIN/
 .AppleDouble
 .LSOverride
 Icon
-
 ._*
 .Spotlight-V100
 .Trashes
@@ -39,3 +38,5 @@ crashlytics-build.properties
 # Composer
 /vendor
 composer.lock
+.sass-cache
+*.css.map

@@ -2,201 +2,112 @@
 
 namespace futuretek\options;
 
+use rmrevin\yii\fontawesome\FA;
+use rmrevin\yii\fontawesome\FontAwesome;
 use Yii;
+use yii\base\InvalidArgumentException;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
 
 /**
  * Class OptionHelper
  *
  * @package futuretek\options
- * @author  Martin Bocek
- * @license Apache-2.0
+ * @author  Lukas Cerny <lukas.cerny@futuretek.cz>
+ * @license https://www.apache.org/licenses/LICENSE-2.0.html Apache-2.0
  * @link    http://www.futuretek.cz
  */
 class OptionHelper
 {
     /**
-     * Generate formatted value for Yes/No/null options
-     *
-     * @param int $value Attribute value
-     * @param bool $icon Show icon instead of text
-     * @return string Generated html code
-     */
-    public static function gridValueYesNo($value, $icon = true)
-    {
-        switch ($value) {
-            case 0:
-                return $icon ? '<i class="fa fa-times text-danger" title="' . Yii::t('fts-yii2-options', 'No') . '"></i>' : Yii::t('fts-yii2-options', 'No');
-                break;
-            case 1:
-                return $icon ? '<i class="fa fa-check text-success" title="' . Yii::t('fts-yii2-options', 'Yes') . '"></i>' : Yii::t('fts-yii2-options', 'Yes');
-                break;
-            default:
-                return $icon ? '<i class="fa fa-question text-info" title="' . Yii::t('fts-yii2-options', 'Unknown') . '"></i>' : Yii::t('fts-yii2-options', 'Unknown');
-        }
-    }
-
-    /**
-     * @param Option $model Option model
-     * @return string
-     * @throws \RuntimeException
-     * @throws \yii\base\InvalidParamException
-     * @throws \yii\base\InvalidConfigException
-     */
-    public static function formatValue($model)
-    {
-        switch ($model->type) {
-            case Option::TYPE_BOOL:
-                $output = self::gridValueYesNo($model->value);
-                break;
-            case Option::TYPE_DATETIME:
-                $output = Yii::$app->formatter->asDatetime($model->value);
-                break;
-            case Option::TYPE_OPTION:
-                $values = ArrayHelper::map($model->getData(), 'id', 'name');
-                if (array_key_exists($model->value, $values)) {
-                    $output = $values[$model->value];
-                } else {
-                    $output = reset($values);
-                }
-                break;
-            case Option::TYPE_PASSWORD:
-                $output = '********';
-                break;
-            case Option::TYPE_TIME:
-                $output = Yii::$app->formatter->asTime($model->value);
-                break;
-            default:
-                $output = $model->value;
-        }
-
-        if ($model->unit !== null) {
-            $output .= ' ' . $model->unit;
-        }
-
-        return $output;
-    }
-
-    /**
-     * Render edit field
-     *
-     * @param ActiveForm $form
-     * @param Option $option
-     * @throws \RuntimeException
-     * @throws \yii\base\InvalidParamException
-     * @deprecated Please use OptionHelper::returnRenderEditField instead
-     * @see OptionHelper::returnRenderEditField()
-     */
-    public static function renderEditField(ActiveForm $form, Option $option)
-    {
-        echo static::returnRenderEditField($form,$option);
-    }
-
-    /**
      * Return rendered edit field
      *
-     * @param ActiveForm $form
-     * @param Option $option
+     * @param array $item
      * @return string|\yii\widgets\ActiveField
+     * @throws \yii\base\InvalidArgumentException
+     * @throws \Exception
      * @throws \RuntimeException
      * @throws \yii\base\InvalidParamException
      */
-    public static function returnRenderEditField(ActiveForm $form, Option $option)
+    public static function returnRenderEditField(array $item)
     {
-        switch ($option->type) {
+        $value = Yii::$app->get('options')->get($item['name']);
+
+        $options = [
+            'class' => 'form-control',
+            'id' => $item['name'],
+        ];
+
+        $renderLabel = true;
+        $labelOptions = [
+            'class' => 'control-label',
+        ];
+
+        switch ($item['type']) {
             case Option::TYPE_BOOL:
-                return $form->
-                field($option, '[' . $option->id . ']value')
-                    ->label($option->title)
-                    ->checkbox()
-                    ->hint($option->description);
+                $renderLabel = false;
+                $content = '<label class="control-label checkbox-container" for="' . $item['name'] . '">' . $item['title'] .
+                    Html::checkbox($item['name'], $value, array_merge($options, [
+                    ])) .
+                    Html::tag('span', '', ['class' => 'checkmark']) . '</label>';
+                break;
             case Option::TYPE_DATETIME:
-                return $form
-                    ->field($option, '[' . $option->id . ']value', [
-                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-calendar"></i></span>{input}</div>',
-                    ])->label($option->title)
-                    ->input('date')
-                    ->hint($option->description);
+                $content = self::inputAddon('calendar', Html::input('date', $item['name'], $value, $options));
+                break;
             case Option::TYPE_EMAIL:
-                return $form
-                    ->field($option, '[' . $option->id . ']value', [
-                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-envelope"></i></span>{input}</div>',
-                    ])->label($option->title)
-                    ->input('email')
-                    ->hint($option->description);
+                $content = self::inputAddon('envelope', Html::input('email', $item['name'], $value, $options));
+                break;
             case Option::TYPE_FLOAT:
             case Option::TYPE_INT:
-                return $form
-                    ->field($option, '[' . $option->id . ']value')
-                    ->label($option->title)
-                    ->input('number')
-                    ->hint($option->description);
+                $content = Html::input('number', $item['name'], $value, $options);
+                break;
             case Option::TYPE_OPTION:
-                return $form
-                    ->field($option, '[' . $option->id . ']value')
-                    ->label($option->title)
-                    ->dropDownList(ArrayHelper::map($option->getData(), 'id', 'name'))
-                    ->hint($option->description);
+                $content = Html::dropDownList($item['name'], $value, ArrayHelper::map(Option::getData($item), 'id', 'name'), $options);
+                break;
             case Option::TYPE_PHONE:
-                return $form
-                    ->field($option, '[' . $option->id . ']value', [
-                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-phone"></i></span>{input}</div>',
-                    ])
-                    ->label($option->title)
-                    ->input('tel')
-                    ->hint($option->description);
+                $content = self::inputAddon('phone', Html::input('tel', $item['name'], $value, $options));
+                break;
             case Option::TYPE_STRING:
-                return $form
-                    ->field($option, '[' . $option->id . ']value')
-                    ->label($option->title)
-                    ->input('text')
-                    ->hint($option->description);
-            case Option::TYPE_TEXT:
-                return $form
-                    ->field($option, '[' . $option->id . ']value')
-                    ->label($option->title)
-                    ->textarea(['rows' => 6])
-                    ->hint($option->description);
+                $content = Html::input('text', $item['name'], $value, $options);
+                break;
             case Option::TYPE_HTML:
                 if (Yii::$app->hasModule('redactor')) {
-                    return $form
-                        ->field($option, '[' . $option->id . ']value')
-                        ->label($option->title)
-                        ->hint($option->description)
-                        ->widget(\yii\redactor\widgets\Redactor::className());
+                    $content = yii\redactor\Redactor::widget([
+                        'name' => $item['name'],
+                        'value' => $value,
+                        'options' => $options,
+                    ]);
+                    break;
                 }
-
-                return $form
-                    ->field($option, '[' . $option->id . ']value')
-                    ->label($option->title)
-                    ->textarea(['rows' => 6])
-                    ->hint($option->description);
+            //No break
+            case Option::TYPE_TEXT:
+                $content = Html::textarea($item['name'], $value, array_merge($options, ['rows' => 6]));
+                break;
             case Option::TYPE_TIME:
-                return $form
-                    ->field($option, '[' . $option->id . ']value', [
-                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-clock-o"></i></span>{input}</div>',
-                    ])
-                    ->label($option->title)
-                    ->input('time')
-                    ->hint($option->description);
+                $content = self::inputAddon('clock-o', Html::input('time', $item['name'], $value, $options));
+                break;
             case Option::TYPE_URL:
-                return $form
-                    ->field($option, '[' . $option->id . ']value')
-                    ->label($option->title)
-                    ->input('url')
-                    ->hint($option->description);
+                $content = self::inputAddon('globe', Html::input('url', $item['name'], $value, $options));
+                break;
             case Option::TYPE_PASSWORD:
-                return $form
-                    ->field($option, '[' . $option->id . ']value', [
-                        'inputTemplate' => '<div class="input-group"><span class="input-group-addon"><i class="fa fa-key"></i></span>{input}</div>',
-                    ])
-                    ->label($option->title)
-                    ->input('password')
-                    ->hint($option->description);
+                $content = self::inputAddon('key', Html::input('password', $item['name'], null, $options));
+                break;
             default:
-                return Html::tag('p', Yii::t('fts-yii2-options', 'Option type {type} not found', ['type' => $option->type]), ['class' => 'label label-danger']);
+                throw new InvalidArgumentException(Yii::t('fts-yii2-options', 'Option type {type} not found', ['type' => $item['type']]));
         }
+
+        return $renderLabel ? Html::label($item['title'], $item['name'], $labelOptions) . $content : $content;
+    }
+
+    /**
+     * Render add-on icon in input
+     *
+     * @param string $icon Icon class
+     * @param string $content Content
+     * @return string
+     */
+    public static function inputAddon($icon, $content)
+    {
+        return Html::tag('div', Html::tag('span', FontAwesome::i($icon), ['class' => 'input-group-addon']) . $content, ['class' => 'input-group']);
     }
 }

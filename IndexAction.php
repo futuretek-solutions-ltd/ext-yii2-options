@@ -3,8 +3,6 @@
 namespace futuretek\options;
 
 use yii\base\Action;
-use yii\data\ActiveDataProvider;
-use yii\grid\GridView;
 
 /**
  * Class IndexAction
@@ -18,26 +16,24 @@ class IndexAction extends Action
 {
     /**
      * @inheritdoc
+     * @throws \yii\base\InvalidArgumentException
      * @throws \yii\base\InvalidParamException
-     * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
     public function run()
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Option::find()->where(['system' => 0]),
-            'pagination' => [
-                'pageSize' => 9999,
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    'category' => SORT_ASC,
-                    'name' => SORT_ASC,
-                ],
-            ],
+        if (\Yii::$app->request->post('form-submit') !== null) {
+            foreach (\Yii::$app->get('options')->getDefinition() as $option) {
+                $value = \Yii::$app->request->post($option['name']);
+                if (($value === '' || $value === null) && $option['type'] === Option::TYPE_PASSWORD) {
+                    continue;
+                }
+                \Yii::$app->get('options')->set($option['name'], $value);
+            }
 
-        ]);
+            \Yii::$app->session->setFlash('info', \Yii::t('fts-yii2-options', 'Successfully saved.'), true);
+        }
 
-        return $this->controller->render('@vendor/futuretek/yii2-options/views/index', ['dataProvider' => $dataProvider]);
+        return $this->controller->render('@vendor/futuretek/yii2-options/views/index');
     }
 }

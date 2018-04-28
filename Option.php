@@ -3,152 +3,246 @@
 namespace futuretek\options;
 
 use Yii;
-use yii\base\Exception;
-use yii\db\ActiveRecord;
+use yii\base\Component;
+use yii\base\InvalidArgumentException;
+use yii\base\InvalidConfigException;
+use yii\caching\CacheInterface;
+use yii\db\Connection;
+use yii\db\Expression;
+use yii\db\Query;
+use yii\di\Instance;
 use yii\helpers\ArrayHelper;
 
 /**
- * Model Option
+ * Options component
  *
- * @property integer $id ID
- * @property string $name Option name (key)
- * @property string $value Option value
- * @property string $title Option title
- * @property string $description
- * @property string $default_value
- * @property string $unit
- * @property integer $system
- * @property string $type
- * @property string $context
- * @property string $data
- * @property string $category
- * @property int $context_id
- * @property string $created_at
- * @property string $updated_at
- *
- * @package futuretek\options
- * @author  Lukáš Černý <lukas.cerny@futuretek.cz>, Petr Compel <petr.compel@futuretek.cz>
- * @license Apache-2.0
- * @link    http://www.futuretek.cz
+ * @package app\classes\options
+ * @author  Lukáš Černý <lukas.cerny@marbes.cz>
+ * @link    http://www.marbes.cz
  */
-class Option extends ActiveRecord
+class Option extends Component
 {
-    /**
-     * Boolean type
-     */
+    /** Boolean type */
     const TYPE_BOOL = 'B';
-    /**
-     * Datetime type
-     */
+
+    /** Datetime type */
     const TYPE_DATETIME = 'D';
-    /**
-     * E-mail type
-     */
+
+    /** E-mail type */
     const TYPE_EMAIL = 'E';
-    /**
-     * Float type
-     */
+
+    /** Float type */
     const TYPE_FLOAT = 'F';
-    /**
-     * Int type
-     */
+
+    /** Int type */
     const TYPE_INT = 'I';
-    /**
-     * Option (drop-down) type
-     */
+
+    /** Option (drop-down) type */
     const TYPE_OPTION = 'O';
-    /**
-     * Phone number type
-     */
+
+    /** Phone number type */
     const TYPE_PHONE = 'P';
-    /**
-     * String type
-     */
+
+    /** String type */
     const TYPE_STRING = 'S';
-    /**
-     * Text type (long string)
-     */
+
+    /** Text type (long string) */
     const TYPE_TEXT = 'X';
-    /**
-     * Text type (long string)
-     */
+
+    /** HTML type (long string) */
     const TYPE_HTML = 'H';
-    /**
-     * Time type
-     */
+
+    /** Time type */
     const TYPE_TIME = 'T';
-    /**
-     * URL address type
-     */
+
+    /** URL address type */
     const TYPE_URL = 'U';
-    /**
-     * Password type
-     */
+
+    /** Password type */
     const TYPE_PASSWORD = 'W';
 
     /**
-     * @inheritdoc
+     * @var Connection|array|string the DB connection object or the application component ID of the DB connection.
+     *
+     * After the object is created, if you want to change this property, you should only assign
+     * it with a DB connection object.
+     *
+     * Starting from version 2.0.2, this can also be a configuration array for creating the object.
      */
-    public static function tableName()
-    {
-        return 'option';
-    }
+    public $db = 'db';
 
     /**
-     * @inheritdoc
+     * @var CacheInterface|array|string the cache object or the application component ID of the cache object.
+     * The option data will be cached using this cache object.
+     * Note, that to enable caching you have to set [[enableCaching]] to `true`, otherwise setting this property has no effect.
+     *
+     * After the object is created, if you want to change this property, you should only assign
+     * it with a cache object.
+     *
+     * Starting from version 2.0.2, this can also be a configuration array for creating the object.
+     * @see cachingDuration
+     * @see enableCaching
      */
-    public function rules()
-    {
-        return [
-            [['name'], 'required'],
-            [['description', 'data', 'context', 'unit'], 'string'],
-            [['system', 'context_id'], 'integer'],
-            [['value', 'created_at', 'updated_at', 'default_value'], 'safe'],
-            [['name', 'title'], 'string', 'max' => 128],
-            [['category'], 'string', 'max' => 64],
-            [['type'], 'string', 'max' => 1],
-            [['context'], 'string', 'max' => 16],
-            [['unit'], 'string', 'max' => 16],
-        ];
-    }
+    public $cache = 'cache';
 
     /**
-     * @inheritdoc
+     * @var string the name of the option table.
      */
-    public function attributeLabels()
-    {
-        return [
-            'id' => Yii::t('fts-yii2-options', 'ID'),
-            'name' => Yii::t('fts-yii2-options', 'Name'),
-            'value' => Yii::t('fts-yii2-options', 'Value'),
-            'default_value' => Yii::t('fts-yii2-options', 'Default Value'),
-            'unit' => Yii::t('fts-yii2-options', 'Unit'),
-            'title' => Yii::t('fts-yii2-options', 'Title'),
-            'description' => Yii::t('fts-yii2-options', 'Description'),
-            'data' => Yii::t('fts-yii2-options', 'Data'),
-            'system' => Yii::t('fts-yii2-options', 'System'),
-            'type' => Yii::t('fts-yii2-options', 'Type'),
-            'category' => Yii::t('fts-yii2-options', 'Category'),
-            'context' => Yii::t('fts-yii2-options', 'Context'),
-            'context_id' => Yii::t('fts-yii2-options', 'Context'),
-            'created_at' => Yii::t('fts-yii2-options', 'Created At'),
-            'updated_at' => Yii::t('fts-yii2-options', 'Updated At'),
-        ];
-    }
+    public $optionTable = '{{%option}}';
 
     /**
-     * @inheritdoc
+     * @var int the time in seconds that the options can remain valid in cache.
+     * Use 0 to indicate that the cached data will never expire.
+     * @see enableCaching
      */
-    public function beforeSave($insert)
+    public $cachingDuration = 0;
+    /**
+     * @var bool whether to enable options caching
+     */
+    public $enableCaching = false;
+
+    /** @var string Options config file */
+    public $configFile;
+
+    /** @var array Options config */
+    public $config;
+
+    private static $_optionList = [];
+
+    /**
+     * Initializes the Option component.
+     * This method will initialize the [[db]] property to make sure it refers to a valid DB connection.
+     * Configured [[cache]] component would also be initialized.
+     * @throws \Exception
+     * @throws InvalidConfigException if [[db]] is invalid or [[cache]] is invalid.
+     */
+    public function init()
     {
-        if ($insert && $this->hasAttribute('created_at')) {
-            $this->created_at = (new \DateTime())->format('Y-m-d H:i:s');
+        parent::init();
+
+        $this->db = Instance::ensure($this->db, Connection::class);
+        if ($this->enableCaching) {
+            $this->cache = Instance::ensure($this->cache, 'yii\caching\CacheInterface');
         }
-        if ($this->hasAttribute('updated_at')) {
-            $this->updated_at = (new \DateTime())->format('Y-m-d H:i:s');
+
+        if (!file_exists($this->configFile)) {
+            throw new InvalidConfigException(Yii::t('fts-yii2-options', 'Option config file does not exist.'));
+        }
+        $this->config = require $this->configFile;
+
+        $this->_normalizeConfig();
+        $this->_parseConfig();
+    }
+
+    /**
+     * Loads the options.
+     *
+     * @param string $context Option context
+     * @param mixed $context_id Context ID
+     * @return array the loaded options. The keys are option names, and the values are option values.
+     * @throws \yii\db\Exception
+     */
+    protected function loadOptions($context, $context_id)
+    {
+        if ($this->enableCaching) {
+            $key = [__NAMESPACE__, __CLASS__, $context, $context_id];
+            $options = $this->cache->get($key);
+            if ($options === false) {
+                $options = $this->loadOptionsFromDb($context, $context_id);
+                $this->cache->set($key, $options, $this->cachingDuration);
+            }
+
+            return $options;
         }
 
-        return parent::beforeSave($insert);
+        return $this->loadOptionsFromDb($context, $context_id);
+    }
+
+    /**
+     * Loads the messages from database.
+     * You may override this method to customize the message storage in the database.
+     * @param string $context Option context
+     * @param mixed $context_id Context ID
+     * @return array the messages loaded from database.
+     * @throws \yii\db\Exception
+     */
+    protected function loadOptionsFromDb($context, $context_id)
+    {
+        $mainQuery = (new Query())
+            ->select(['name', 'value'])
+            ->from($this->optionTable)
+            ->where(['context' => $context, 'context_id' => $context_id]);
+
+        $options = $mainQuery->createCommand($this->db)->queryAll();
+
+        return ArrayHelper::map($options, 'name', 'value');
+    }
+
+    /**
+     * Check and normalize option config
+     *
+     * @throws \Exception
+     * @throws InvalidConfigException
+     */
+    private function _normalizeConfig()
+    {
+        if (!is_array($this->config)) {
+            throw new InvalidConfigException(Yii::t('fts-yii2-options', 'Option config group have to be an array.'));
+        }
+        foreach ($this->config as &$group) {
+            if (!array_key_exists('title', $group)) {
+                throw new InvalidConfigException(Yii::t('fts-yii2-options', 'Option config group title must be set.'));
+            }
+            if (!array_key_exists('visible', $group)) {
+                $group['visible'] = true;
+            }
+            if (!array_key_exists('items', $group)) {
+                $group['items'] = [];
+            }
+            if (!is_array($group['items'])) {
+                throw new InvalidConfigException(Yii::t('fts-yii2-options', 'Option config group items have to be an array.'));
+            }
+            foreach ($group['items'] as &$item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                if (!array_key_exists('name', $item)) {
+                    throw new InvalidConfigException(Yii::t('fts-yii2-options', 'Option config item name must be set.'));
+                }
+                if (!array_key_exists('type', $item)) {
+                    throw new InvalidConfigException(Yii::t('fts-yii2-options', 'Option config item type must be set.'));
+                }
+                if (!array_key_exists('title', $item)) {
+                    throw new InvalidConfigException(Yii::t('fts-yii2-options', 'Option config item title must be set.'));
+                }
+                if (!array_key_exists('hint', $item)) {
+                    $item['hint'] = null;
+                }
+                if (!array_key_exists('context', $item)) {
+                    $item['context'] = false;
+                }
+                if (!array_key_exists('visible', $item)) {
+                    $item['visible'] = true;
+                }
+                if (!array_key_exists('default', $item)) {
+                    $item['default'] = null;
+                }
+            }
+        }
+    }
+
+    /**
+     * Parse options from option config to array for easier access
+     */
+    private function _parseConfig()
+    {
+        foreach ($this->config as $group) {
+            foreach ($group['items'] as $item) {
+                if (is_array($item)) {
+                    self::$_optionList[$item['name']] = $item;
+                }
+            }
+        }
     }
 
     /**
@@ -156,60 +250,68 @@ class Option extends ActiveRecord
      *
      * @param string $name Option name
      * @param string $context Option context
-     * @param int|null $context_id Context ID
+     * @param mixed $context_id Context ID
      * @param mixed|null $defaultValue Default value
      * @return null|string Option value or defaultValue when option not found
-     *
-     * @static
+     * @throws \yii\base\InvalidArgumentException
+     * @throws \yii\db\Exception
      */
-    public static function get($name, $context = 'Option', $context_id = null, $defaultValue = null)
+    public function get($name, $context = null, $context_id = null, $defaultValue = null)
     {
-        $options = self::_loadCache($context, $context_id);
+        if (!$this->has($name)) {
+            throw new InvalidArgumentException(Yii::t('fts-yii2-options', 'Option with name {name} not defined.', ['name' => $name]));
+        }
+
+        if (self::$_optionList[$name]['context'] && ($context === null || $context_id === null)) {
+            throw new InvalidArgumentException(Yii::t('fts-yii2-options', 'Option with name {name} is defined as context option but no context was specified.', ['name' => $name]));
+        }
+
+        $options = $this->loadOptions($context, $context_id);
         if (!array_key_exists($name, $options)) {
-            return $defaultValue;
-        }
-        if ($options[$name]['type'] === self::TYPE_PASSWORD) {
-            return Yii::$app->getSecurity()->decryptByPassword(base64_decode($options[$name]['value']), Yii::$app->params['salt']);
+            return $defaultValue !== null ? $defaultValue : self::$_optionList[$name]['default'];
         }
 
-        return $options[$name]['value'];
+        //Decrypt password
+        if (self::$_optionList[$name]['type'] === self::TYPE_PASSWORD) {
+            return Yii::$app->getSecurity()->decryptByPassword(base64_decode($options[$name]), Yii::$app->params['salt']);
+        }
+
+        return $options[$name];
     }
 
     /**
-     * Get option value from Option context
+     * Get all options in associative array name => value
      *
-     * @param string $name Option name
-     * @return null|string Option value or boolean false when option not found
-     *
-     * @static
-     * @deprecated Please use Option::get() instead.
+     * @param string $context Option context
+     * @param mixed $context_id Context ID
+     * @param bool $decrypt Decrypt password options
+     * @return array
+     * @throws \yii\db\Exception
      */
-    public static function getOpt($name)
+    public function getAll($context = null, $context_id = null, $decrypt = false)
     {
-        return self::get($name);
-    }
+        $options = $this->loadOptions($context, $context_id);
 
-    /**
-     * Get all context options
-     *
-     * @param string $context Context
-     * @param int $context_id Context ID
-     *
-     * @return array Associative array of options (name => value)
-     * @deprecated
-     * @static
-     */
-    public static function getAll($context = 'Option', $context_id = null)
-    {
-        $options = self::_loadCache($context, $context_id);
-
-        foreach ($options as &$option) {
-            if ($option['type'] === self::TYPE_PASSWORD) {
-                $option['value'] = Yii::$app->getSecurity()->decryptByPassword(base64_decode($option['value']), Yii::$app->params['salt']);
+        //Decrypt password
+        if ($decrypt) {
+            foreach ($options as $name => &$value) {
+                if (self::$_optionList[$name]['type'] === self::TYPE_PASSWORD) {
+                    $value = Yii::$app->getSecurity()->decryptByPassword(base64_decode($value), Yii::$app->params['salt']);
+                }
             }
         }
 
-        return ArrayHelper::map($options, 'name', 'value');
+        return $options;
+    }
+
+    /**
+     * Get options definition
+     *
+     * @return array[]
+     */
+    public function getDefinition()
+    {
+        return self::$_optionList;
     }
 
     /**
@@ -218,265 +320,102 @@ class Option extends ActiveRecord
      * @param string $name Option name
      * @param string $value Option value
      * @param string $context Option context
-     * @param int|null $context_id Context ID
-     * @param string $type Option type (default: Option::TYPE_STRING)
-     * @param bool $system Is this option system (default: false)
-     *
+     * @param mixed $context_id Context ID
      * @return bool If option was set successfully
-     *
-     * @throws \yii\base\InvalidConfigException
-     * @static
+     * @throws \Exception
      */
-    public static function set($name, $value, $context = 'Option', $context_id = null, $type = Option::TYPE_STRING, $system = false)
+    public function set($name, $value, $context = null, $context_id = null)
     {
-        $option = self::findOne(['name' => $name, 'context' => $context, 'context_id' => $context_id]);
-
-        if ($option === null) {
-            $option = new self();
-            $option->name = $name;
-            $option->type = $type;
-            $option->system = (int)$system;
-            $option->context = $context;
-            $option->context_id = $context_id === null ? null : (int)$context_id;
-        } else {
-            $type = $option->type;
+        if (!$this->has($name)) {
+            throw new InvalidArgumentException(Yii::t('fts-yii2-options', 'Option with name {name} not defined.', ['name' => $name]));
         }
 
-        if ($type === self::TYPE_PASSWORD) {
+        if (($context === null || $context_id === null) && self::$_optionList[$name]['context']) {
+            throw new InvalidArgumentException(Yii::t('fts-yii2-options', 'Option with name {name} is defined as context option but no context was specified.', ['name' => $name]));
+        }
+
+        if (self::$_optionList[$name]['type'] === self::TYPE_PASSWORD) {
             $value = base64_encode(Yii::$app->getSecurity()->encryptByPassword($value, Yii::$app->params['salt']));
         }
 
-        $option->value = $value;
+        $selectQuery = (new Query())
+            ->select(['id'])
+            ->from($this->optionTable)
+            ->where(['name' => $name, 'context' => $context, 'context_id' => $context_id]);
 
-        self::_invalidateCache($context, $context_id);
+        $id = $selectQuery->createCommand($this->db)->queryScalar();
 
-        return $option->save();
+        if ($id) {
+            //Update
+            $result = $this->db->createCommand()->update($this->optionTable, [
+                'value' => $value,
+                'updated_at' => new Expression('NOW()'),
+            ], [
+                'id' => $id,
+            ])->execute();
+        } else {
+            //Create
+            $result = $this->db->createCommand()->insert($this->optionTable, [
+                'name' => $name,
+                'value' => $value,
+                'context' => $context,
+                'context_id' => $context_id,
+                'created_at' => new Expression('NOW()'),
+                'updated_at' => new Expression('NOW()'),
+            ])->execute();
+        }
+
+        $this->_invalidateCache($context, $context_id);
+
+        return $result === 1;
     }
 
     /**
      * Check if option with specified name exists
      *
      * @param string $name Option name
-     * @param string $context Option context
-     * @param int|null $context_id Context ID
      * @return bool
      */
-    public static function has($name, $context = 'Option', $context_id = null)
+    public function has($name)
     {
-        $options = self::_loadCache($context, $context_id);
-
-        return array_key_exists($name, $options);
-    }
-
-    /**
-     * Set option value / create option
-     *
-     * @param string $name Option name
-     * @param string $title Option title
-     * @param string $description Option description
-     * @param mixed $defaultValue Default value
-     * @param string $type Option type
-     * @param bool $system Is this system option
-     * @param string $unit Value unit
-     * @param mixed $data Option data (for use with select option type)
-     * @param string $context Option context
-     * @param int|null $context_id Context ID
-     * @return bool If option was set successfully
-     *
-     * @static
-     */
-    public static function create($name, $title, $description, $defaultValue, $type, $system, $unit, $data, $context = 'Option', $context_id = null)
-    {
-        $option = self::findOne(['name' => $name, 'context' => $context, 'context_id' => $context_id]);
-
-        if ($option === null) {
-            $option = new self();
-            $option->name = strtoupper($name);
-            $option->context = $context;
-            $option->context_id = $context_id === null ? null : (int)$context_id;
-        }
-        $option->title = $title;
-        $option->description = $description;
-        $option->default_value = $defaultValue;
-        $option->type = $type;
-        $option->system = (int)$system;
-        $option->unit = $unit;
-        $option->setData($data);
-        $option->data = '';
-
-        self::_invalidateCache($context, $context_id);
-
-        return $option->save();
-    }
-
-    /**
-     * Set option value to default value
-     *
-     * @param string $name Option name
-     * @param string $context Option context
-     * @param int|null $context_id Context ID
-     *
-     * @return bool If default value was set successfully
-     * @static
-     */
-    public static function setDefaultValue($name, $context = 'Option', $context_id = null)
-    {
-        $option = self::findOne(['name' => $name, 'context' => $context, 'context_id' => $context_id]);
-
-        if ($option === null) {
-            return false;
-        }
-
-        $option->value = $option->default_value;
-
-        self::_invalidateCache($context, $context_id);
-
-        return $option->save();
-    }
-
-    /**
-     * Delete option
-     *
-     * @param string $name Option name
-     * @param string $context Context
-     * @param int|null $context_id Context ID
-     *
-     * @return bool If option was deleted successfully
-     *
-     * @throws \Exception
-     * @throws \yii\base\InvalidConfigException
-     * @static
-     */
-    public static function del($name, $context = 'Option', $context_id = null)
-    {
-        $condition = ['name' => $name, 'context' => $context];
-        if ($context_id) {
-            $condition['context_id'] = $context_id;
-        }
-
-        self::_invalidateCache($context, $context_id);
-
-        return (bool)self::deleteAll($condition);
-    }
-
-    /**
-     * Delete all options for given context and context ID
-     *
-     * @param string $context Context
-     * @param int $context_id Context ID
-     *
-     * @return bool If options was deleted successfully
-     * @static
-     */
-    public static function delAll($context, $context_id)
-    {
-        self::_invalidateCache($context, $context_id);
-
-        return (bool)self::deleteAll(['context' => $context, 'context_id' => $context_id]);
-    }
-
-    /**
-     * Get option from user context
-     *
-     * @param string $name Option name
-     * @param int|null $userId User ID
-     * @param string|null $defaultValue Default value in case value is not set
-     *
-     * @return bool|string Option value or boolean false when option not found
-     *
-     * @deprecated
-     * @throws Exception
-     * @static
-     */
-    public static function getUser($name, $userId = null, $defaultValue = null)
-    {
-        return self::get($name, 'User', $userId, $defaultValue);
-    }
-
-    /**
-     * Set option value in User context
-     *
-     * @param string $name Option name
-     * @param string $value Option value
-     * @param int|null $userId User ID
-     *
-     * @return bool If option was set successfully
-     *
-     * @deprecated
-     * @throws Exception
-     * @static
-     */
-    public static function setUser($name, $value, $userId = null)
-    {
-        self::_invalidateCache('User', $userId);
-
-        return self::set($name, $value, 'User', $userId);
-    }
-
-    /**
-     * Get option data
-     *
-     * @return array
-     * @throws \yii\base\InvalidParamException
-     * @throws \RuntimeException
-     */
-    public function getData()
-    {
-        $data = unserialize($this->data);
-
-        if ($data instanceof OptionData) {
-            return $data->getData();
-        }
-
-        return $data;
-    }
-
-    /**
-     * Set option data
-     *
-     * @param OptionData $data Data definition
-     */
-    public function setData(OptionData $data)
-    {
-        $this->data = serialize($data);
-    }
-
-    /**
-     * Loads all options from specified context (using cache)
-     *
-     * @param string $context Context
-     * @param int $context_id Context ID
-     * @return array[]
-     */
-    private static function _loadCache($context, $context_id)
-    {
-        $key = [__NAMESPACE__, __CLASS__, 'opt', $context, $context_id];
-        $cache = Yii::$app->getCache()->get($key);
-        if ($cache !== false) {
-            return $cache['data'];
-        }
-
-        $result = self::find()
-            ->select(['name', 'value', 'type'])
-            ->where(['context' => $context, 'context_id' => $context_id])
-            ->asArray()
-            ->all();
-
-        $result = ArrayHelper::index($result, 'name');
-
-        Yii::$app->getCache()->set($key, ['data' => $result]);
-
-        return $result;
+        return array_key_exists($name, self::$_optionList);
     }
 
     /**
      * Invalidates cache for specified context
      *
      * @param string $context Context
-     * @param int $context_id Context ID
+     * @param mixed $context_id Context ID
      */
-    private static function _invalidateCache($context, $context_id)
+    private function _invalidateCache($context, $context_id)
     {
-        Yii::$app->getCache()->delete([__NAMESPACE__, __CLASS__, 'opt', $context, $context_id]);
+        Yii::$app->getCache()->delete([__NAMESPACE__, __CLASS__, $context, $context_id]);
+    }
+
+    /**
+     * Get data from option item definition
+     *
+     * @param array $optionItem Option Item
+     * @return array
+     * @throws \Exception
+     * @throws InvalidConfigException
+     */
+    public static function getData($optionItem)
+    {
+        if (!array_key_exists('data', $optionItem)) {
+            return [];
+        }
+
+        if (is_callable($optionItem['data'])) {
+            $dataMethod = $optionItem['data'];
+
+            return $dataMethod();
+        }
+
+        if (is_array($optionItem['data'])) {
+            return $optionItem['data'];
+        }
+
+        throw new InvalidConfigException(\Yii::t('fts-yii2-options', 'Invalid data type for option item {name}.', ['name' => $optionItem['name']]));
     }
 }
