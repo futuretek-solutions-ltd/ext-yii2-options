@@ -2,8 +2,6 @@
 
 namespace futuretek\options;
 
-use rmrevin\yii\fontawesome\FA;
-use rmrevin\yii\fontawesome\FontAwesome;
 use Yii;
 use yii\base\InvalidArgumentException;
 use yii\helpers\ArrayHelper;
@@ -108,6 +106,6 @@ class OptionHelper
      */
     public static function inputAddon($icon, $content)
     {
-        return Html::tag('div', Html::tag('span', FontAwesome::i($icon), ['class' => 'input-group-addon']) . $content, ['class' => 'input-group']);
+        return Html::tag('div', Html::tag('span', Html::tag('i', '', ['class' => 'fa fa-' . $icon]), ['class' => 'input-group-addon']) . $content, ['class' => 'input-group']);
     }
 }

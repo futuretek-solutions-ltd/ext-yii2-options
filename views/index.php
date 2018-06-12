@@ -10,7 +10,6 @@ use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 
 CheckboxAsset::register($this);
-\rmrevin\yii\fontawesome\AssetBundle::register($this);
 
 $this->title = Yii::t('fts-yii2-options', 'Options');
 ?>

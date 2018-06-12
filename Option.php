@@ -262,7 +262,7 @@ class Option extends Component
             throw new InvalidArgumentException(Yii::t('fts-yii2-options', 'Option with name {name} not defined.', ['name' => $name]));
         }
 
-        if (self::$_optionList[$name]['context'] && ($context === null || $context_id === null)) {
+        if (self::$_optionList[$name]['context'] && ($context !== self::$_optionList[$name]['context'] || $context_id === null)) {
             throw new InvalidArgumentException(Yii::t('fts-yii2-options', 'Option with name {name} is defined as context option but no context was specified.', ['name' => $name]));
         }
 
@@ -330,7 +330,7 @@ class Option extends Component
             throw new InvalidArgumentException(Yii::t('fts-yii2-options', 'Option with name {name} not defined.', ['name' => $name]));
         }
 
-        if (($context === null || $context_id === null) && self::$_optionList[$name]['context']) {
+        if (($context !== self::$_optionList[$name]['context'] || $context_id === null) && self::$_optionList[$name]['context']) {
             throw new InvalidArgumentException(Yii::t('fts-yii2-options', 'Option with name {name} is defined as context option but no context was specified.', ['name' => $name]));
         }
 
