@@ -349,7 +349,7 @@ class Option extends Component
             //Update
             $result = $this->db->createCommand()->update($this->optionTable, [
                 'value' => $value,
-                'updated_at' => new Expression('NOW()'),
+                'updated_at' => (new \DateTime())->format('Y-m-d H:i:s'),
             ], [
                 'id' => $id,
             ])->execute();
@@ -360,8 +360,8 @@ class Option extends Component
                 'value' => $value,
                 'context' => $context,
                 'context_id' => $context_id,
-                'created_at' => new Expression('NOW()'),
-                'updated_at' => new Expression('NOW()'),
+                'created_at' => (new \DateTime())->format('Y-m-d H:i:s'),
+                'updated_at' => (new \DateTime())->format('Y-m-d H:i:s'),
             ])->execute();
         }
 
