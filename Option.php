@@ -388,6 +388,9 @@ class Option extends Component
      */
     private function _invalidateCache($context, $context_id)
     {
+        if (!$this->enableCaching) {
+            return;
+        }
         $this->cache->delete([__NAMESPACE__, __CLASS__, $context, $context_id]);
     }
 
