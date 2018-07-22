@@ -8,7 +8,6 @@ use yii\base\InvalidArgumentException;
 use yii\base\InvalidConfigException;
 use yii\caching\CacheInterface;
 use yii\db\Connection;
-use yii\db\Expression;
 use yii\db\Query;
 use yii\di\Instance;
 use yii\helpers\ArrayHelper;
@@ -389,7 +388,7 @@ class Option extends Component
      */
     private function _invalidateCache($context, $context_id)
     {
-        Yii::$app->getCache()->delete([__NAMESPACE__, __CLASS__, $context, $context_id]);
+        $this->cache->delete([__NAMESPACE__, __CLASS__, $context, $context_id]);
     }
 
     /**
