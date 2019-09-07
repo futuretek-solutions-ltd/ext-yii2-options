@@ -70,7 +70,7 @@ class OptionHelper
                 break;
             case Option::TYPE_HTML:
                 if (Yii::$app->hasModule('redactor')) {
-                    $content = yii\redactor\Redactor::widget([
+                    $content = yii\redactor\widgets\Redactor::widget([
                         'name' => $item['name'],
                         'value' => $value,
                         'options' => $options,
@@ -106,6 +106,6 @@ class OptionHelper
      */
     public static function inputAddon($icon, $content)
     {
-        return Html::tag('div', Html::tag('span', Html::tag('i', '', ['class' => 'fa fa-' . $icon]), ['class' => 'input-group-addon']) . $content, ['class' => 'input-group']);
+        return Html::tag('div', Html::tag('span', Html::tag('i', '', ['class' => 'far ' . $icon]), ['class' => 'input-group-addon']) . $content, ['class' => 'input-group']);
     }
 }
