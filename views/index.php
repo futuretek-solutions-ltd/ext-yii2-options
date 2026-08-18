@@ -5,9 +5,9 @@
 
 use futuretek\options\assets\CheckboxAsset;
 use futuretek\options\OptionHelper;
-use yii\bootstrap\Tabs;
+use futuretek\options\widgets\Tabs;
 use yii\helpers\Html;
-use yii\bootstrap\ActiveForm;
+use yii\widgets\ActiveForm;
 
 CheckboxAsset::register($this);
 
